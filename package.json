@@ -1,0 +1,19 @@
+{
+  "name": "llm-api-call",
+  "version": "1.0.0",
+  "description": "Simple application to make a real LLM API call with token and cost breakdown",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file=.env server.js",
+    "dev": "node --watch --env-file=.env server.js"
+  },
+  "keywords": [
+    "openai",
+    "llm",
+    "api-cost",
+    "token-calculator"
+  ],
+  "author": "",
+  "license": "ISC"
+}

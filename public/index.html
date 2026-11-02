@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LLM API Call & Token Cost Calculator</title>
+  <meta name="description" content="Interactive application to make a real LLM API call, inspect sent and received payloads, and calculate exact token costs down to the micro-cent.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="ambient-glow glow-1"></div>
+  <div class="ambient-glow glow-2"></div>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-badges">
+        <span class="badge badge-accent">
+          <span class="pulse-dot"></span>
+          Live LLM API Tester
+        </span>
+        <div id="env-status-badge" class="badge badge-status">
+          <span class="status-icon">⏳</span>
+          <span id="env-status-text">Checking .env...</span>
+        </div>
+      </div>
+      <h1 class="main-title">LLM API Call & Cost Explorer</h1>
+      <p class="subtitle">
+        Make a real request to the model, inspect what was sent, see what came back, and calculate the exact cost down to the micro-cent.
+      </p>
+    </header>
+
+    <!-- Main Grid -->
+    <main class="main-layout">
+      <!-- Input Panel -->
+      <section class="panel glass-card" id="input-section" aria-labelledby="input-panel-heading">
+        <div class="panel-header">
+          <h2 id="input-panel-heading" class="panel-title">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20h9M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+            Request Parameters
+          </h2>
+          <button id="toggle-settings-btn" class="btn-subtle" type="button" aria-expanded="false" aria-controls="advanced-settings">
+            <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            <span>Settings</span>
+          </button>
+        </div>
+
+        <!-- Presets -->
+        <div class="presets-container">
+          <label class="field-label">Quick Presets:</label>
+          <div class="preset-chips" id="preset-chips" role="group" aria-label="Preset Roles">
+            <button type="button" class="chip active" data-preset="slogan" id="preset-slogan">☕ Coffee Shop Slogans</button>
+            <button type="button" class="chip" data-preset="summary" id="preset-summary">📝 Key Takeaways</button>
+            <button type="button" class="chip" data-preset="code" id="preset-code">💻 Code Explanation</button>
+            <button type="button" class="chip" data-preset="translator" id="preset-translator">🌍 Translation Assistant</button>
+          </div>
+        </div>
+
+        <!-- Collapsible Settings -->
+        <div id="advanced-settings" class="settings-drawer collapsed">
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="model-select" class="field-label">Model:</label>
+              <select id="model-select" class="input-control">
+                <option value="gpt-4o-mini" selected>GPT-4o Mini (Input $0.15 / Output $0.60 per 1M)</option>
+                <option value="gpt-4o">GPT-4o (Input $2.50 / Output $10.00 per 1M)</option>
+                <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Input $0.50 / Output $1.50 per 1M)</option>
+                <option value="meta-llama/llama-3.2-3b-instruct:free">Llama 3.2 3B Instruct (OpenRouter Free: $0.00)</option>
+              </select>
+            </div>
+            <div class="form-group" style="min-width: 130px;">
+              <label for="temperature-input" class="field-label">
+                Temperature: <span id="temp-val" class="highlight-val">0.7</span>
+              </label>
+              <input type="range" id="temperature-input" min="0" max="1.5" step="0.1" value="0.7" class="slider-control">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="custom-api-key" class="field-label">
+              Custom API Key (optional override for .env):
+            </label>
+            <input type="password" id="custom-api-key" class="input-control font-mono" placeholder="Leave blank to use key from .env or enter an override key">
+            <span class="field-hint">Supports OpenAI keys (`sk-proj-...`) and OpenRouter keys (`sk-or-...`).</span>
+          </div>
+        </div>
+
+        <!-- System Prompt -->
+        <div class="form-group">
+          <div class="field-header">
+            <label for="system-prompt" class="field-label">
+              <strong>System Prompt</strong> (Model instructions):
+            </label>
+            <span class="char-count" id="system-prompt-count">0 characters</span>
+          </div>
+          <textarea id="system-prompt" class="input-control textarea-sm" rows="3" placeholder="Define role or behavior instructions for the model..."></textarea>
+        </div>
+
+        <!-- User Prompt -->
+        <div class="form-group">
+          <div class="field-header">
+            <label for="user-prompt" class="field-label">
+              <strong>User Message</strong> (Prompt to process):
+            </label>
+            <span class="char-count" id="user-prompt-count">0 characters</span>
+          </div>
+          <textarea id="user-prompt" class="input-control textarea-md" rows="4" placeholder="Type your question or message for the model..."></textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons-group">
+          <button id="send-btn" class="btn-primary" type="button">
+            <span class="btn-spinner" id="btn-spinner" hidden></span>
+            <svg class="btn-icon" id="btn-send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="22" y1="2" x2="11" y2="13"/>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+            <span id="btn-text">Call LLM API</span>
+          </button>
+          <button id="demo-btn" class="btn-secondary" type="button" title="Test application and calculation without spending real API credits">
+            <span>✨ Test Calculation (Demo)</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Output & Breakdown Section -->
+      <section class="panel glass-card" id="output-section" aria-labelledby="output-panel-heading">
+        <div class="panel-header">
+          <h2 id="output-panel-heading" class="panel-title">
+            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+              <polyline points="2 17 12 22 22 17"/>
+              <polyline points="2 12 12 17 22 12"/>
+            </svg>
+            Call Results
+          </h2>
+          <div class="header-tags">
+            <span id="response-time-badge" class="badge badge-neutral" hidden>0 ms</span>
+            <span id="response-model-badge" class="badge badge-accent-subtle" hidden>model</span>
+          </div>
+        </div>
+
+        <!-- Initial Placeholder State -->
+        <div id="empty-state" class="empty-state">
+          <div class="empty-icon-wrap">
+            <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+              <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+              <line x1="12" y1="22.08" x2="12" y2="12"/>
+            </svg>
+          </div>
+          <h3>Waiting for Request</h3>
+          <p>Select a preset or enter your prompts on the left and click "Call LLM API".</p>
+        </div>
+
+        <!-- Error Card -->
+        <div id="error-card" class="error-banner" hidden>
+          <div class="error-header">
+            <svg class="error-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            <div>
+              <h3 id="error-title">API Request Error</h3>
+              <p id="error-message" class="error-msg-text"></p>
+            </div>
+          </div>
+          <div id="error-action-hint" class="error-hint-box" hidden></div>
+        </div>
+
+        <!-- Results Container -->
+        <div id="results-container" class="results-layout" hidden>
+          <!-- 1. Cost Summary Card -->
+          <div class="metric-highlight-card" id="cost-card">
+            <div class="metric-top">
+              <div class="metric-label">
+                <span class="sparkle">✨</span> Total Request Cost
+              </div>
+              <div class="metric-value" id="metric-total-cost">$0.000000</div>
+            </div>
+            <div class="formula-box">
+              <div class="formula-title">Calculation Formula:</div>
+              <code class="formula-code" id="formula-display">Cost = (Prompt Tokens × Rate) + (Completion Tokens × Rate)</code>
+            </div>
+            <div class="tokens-grid">
+              <div class="token-stat">
+                <span class="stat-name">Input Tokens (Prompt)</span>
+                <span class="stat-num" id="stat-prompt-tokens">0</span>
+                <span class="stat-cost" id="stat-prompt-cost">$0.000000</span>
+              </div>
+              <div class="token-stat">
+                <span class="stat-name">Output Tokens (Completion)</span>
+                <span class="stat-num" id="stat-completion-tokens">0</span>
+                <span class="stat-cost" id="stat-completion-cost">$0.000000</span>
+              </div>
+              <div class="token-stat stat-total">
+                <span class="stat-name">Total Tokens</span>
+                <span class="stat-num" id="stat-total-tokens">0</span>
+                <span class="stat-cost" id="stat-sum-cost">$0.000000</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Response Content Card -->
+          <div class="detail-card">
+            <div class="detail-card-header">
+              <div class="card-title-group">
+                <span class="tag-number">2</span>
+                <h3>What Came Back (Model Response)</h3>
+              </div>
+              <button id="copy-response-btn" class="btn-subtle-sm" type="button">
+                <svg class="icon-sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+                <span>Copy</span>
+              </button>
+            </div>
+            <div class="response-body" id="response-content-text"></div>
+          </div>
+
+          <!-- 3. What Was Sent Card -->
+          <div class="detail-card">
+            <div class="detail-card-header">
+              <div class="card-title-group">
+                <span class="tag-number">1</span>
+                <h3>What Was Sent (API Request)</h3>
+              </div>
+              <button id="toggle-json-btn" class="btn-subtle-sm" type="button" aria-expanded="false" aria-controls="raw-json-viewer">
+                <span>Show JSON</span>
+              </button>
+            </div>
+            <div class="sent-summary">
+              <div class="sent-item">
+                <span class="sent-label">Endpoint:</span>
+                <code class="font-mono text-sm" id="sent-endpoint">-</code>
+              </div>
+              <div class="sent-item">
+                <span class="sent-label">System Prompt:</span>
+                <div class="sent-text-preview" id="sent-system-preview">-</div>
+              </div>
+              <div class="sent-item">
+                <span class="sent-label">User Message:</span>
+                <div class="sent-text-preview" id="sent-user-preview">-</div>
+              </div>
+            </div>
+            <div id="raw-json-viewer" class="json-viewer collapsed">
+              <pre><code id="json-code-block" class="font-mono"></code></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>LLM API Call & Token Cost Calculator • Designed for transparent AI engineering and token breakdown</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

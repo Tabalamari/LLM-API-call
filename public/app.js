@@ -28,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const modelSelect = document.getElementById('model-select');
   const tempSlider = document.getElementById('temperature-input');
   const tempVal = document.getElementById('temp-val');
+  const tempDescriptor = document.getElementById('temp-descriptor');
   const customKeyInput = document.getElementById('custom-api-key');
   const toggleSettingsBtn = document.getElementById('toggle-settings-btn');
   const advancedSettings = document.getElementById('advanced-settings');
@@ -44,6 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const errorHint = document.getElementById('error-action-hint');
   const resultsContainer = document.getElementById('results-container');
   const responseTimeBadge = document.getElementById('response-time-badge');
+  const responseTempBadge = document.getElementById('response-temp-badge');
   const responseModelBadge = document.getElementById('response-model-badge');
 
   // Metrics
@@ -98,9 +100,30 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleSettingsBtn.setAttribute('aria-expanded', (!isCollapsed).toString());
   });
 
-  // Temperature Slider
+  // Temperature Slider & Live Descriptors
+  function updateTempDescriptor(val) {
+    tempVal.textContent = Number(val).toFixed(1);
+    if (!tempDescriptor) return;
+    if (val <= 0.2) {
+      tempDescriptor.textContent = 'Strict';
+      tempDescriptor.style.color = '#93c5fd';
+    } else if (val <= 0.6) {
+      tempDescriptor.textContent = 'Focused';
+      tempDescriptor.style.color = '#a5b4fc';
+    } else if (val <= 0.9) {
+      tempDescriptor.textContent = 'Balanced';
+      tempDescriptor.style.color = '#c7d2fe';
+    } else if (val <= 1.2) {
+      tempDescriptor.textContent = 'Creative';
+      tempDescriptor.style.color = '#fde047';
+    } else {
+      tempDescriptor.textContent = 'High Variety';
+      tempDescriptor.style.color = '#f87171';
+    }
+  }
+
   tempSlider.addEventListener('input', () => {
-    tempVal.textContent = tempSlider.value;
+    updateTempDescriptor(parseFloat(tempSlider.value));
   });
 
   // Toggle JSON Viewer
@@ -218,6 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
         emptyState.hidden = true;
         resultsContainer.hidden = true;
         responseTimeBadge.hidden = true;
+        if (responseTempBadge) responseTempBadge.hidden = true;
         responseModelBadge.hidden = true;
         return;
       }
@@ -225,6 +249,11 @@ document.addEventListener('DOMContentLoaded', () => {
       // Success Display
       responseTimeBadge.hidden = false;
       responseTimeBadge.textContent = `⚡ ${data.durationMs} ms`;
+
+      if (responseTempBadge) {
+        responseTempBadge.hidden = false;
+        responseTempBadge.textContent = `🌡️ temp: ${temperature.toFixed(1)}`;
+      }
 
       responseModelBadge.hidden = false;
       responseModelBadge.textContent = data.modelUsed;

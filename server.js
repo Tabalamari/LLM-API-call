@@ -30,6 +30,13 @@ export const MODEL_PRICING = {
     outputPerMillion: 1.50,
     description: 'Legacy compact model'
   },
+  'nvidia/nemotron-3.5-lightning:free': {
+    name: 'NVIDIA Nemotron 3.5 Lightning (Free)',
+    provider: 'openrouter',
+    inputPerMillion: 0.00,
+    outputPerMillion: 0.00,
+    description: 'OpenRouter Free Model (no billing required)'
+  },
   'meta-llama/llama-3.2-3b-instruct:free': {
     name: 'Llama 3.2 3B Instruct (Free)',
     provider: 'openrouter',
@@ -39,11 +46,15 @@ export const MODEL_PRICING = {
   }
 };
 
-function getEffectiveKey(clientKey = '') {
+function getEffectiveKey(clientKey = '', model = '') {
   if (clientKey && typeof clientKey === 'string' && clientKey.trim()) {
     return clientKey.trim();
   }
-  return (process.env.OPENAI_API_KEY || process.env.API_KEY || process.env.OPENROUTER_API_KEY || '').trim();
+  const isOpenRouterModel = model.includes('/') || model.includes(':free');
+  if (isOpenRouterModel && process.env.OPENROUTER_API_KEY) {
+    return process.env.OPENROUTER_API_KEY.trim();
+  }
+  return (process.env.OPENROUTER_API_KEY || process.env.OPENAI_API_KEY || process.env.API_KEY || '').trim();
 }
 
 function maskKey(key) {
@@ -108,7 +119,7 @@ async function handleChatRequest(req, res) {
     isDemo = false
   } = parsed;
 
-  const apiKey = getEffectiveKey(customKey);
+  const apiKey = getEffectiveKey(customKey, model);
 
   // If user requested demo simulation mode
   if (isDemo) {

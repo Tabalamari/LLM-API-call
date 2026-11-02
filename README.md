@@ -4,7 +4,8 @@ An interactive web application to make real LLM API calls, inspect request and r
 
 ## Features
 
-- **Real LLM API Calls**: Connects to OpenAI (`gpt-4o-mini`, `gpt-4o`, `gpt-3.5-turbo`) and OpenRouter models.
+- **OpenRouter & Free Models**: Connects to OpenRouter for free, credit-free experimentation (`nvidia/nemotron-3.5-lightning:free`) as well as OpenAI models (`gpt-4o-mini`, `gpt-4o`, `gpt-3.5-turbo`).
+- **Interactive Temperature Control**: Dedicated slider from `0.0` (Strict / Deterministic) to `1.5` (Creative / High Variety) with live descriptor badges and result tracking.
 - **Transparent Cost Calculation**: Breaks down input tokens and output tokens with real-time pricing formulas:
   $$\text{Cost} = (\text{Input Tokens} \times \text{Input Rate}) + (\text{Output Tokens} \times \text{Output Rate})$$
 - **3-Part Payload Inspection**:
@@ -22,9 +23,10 @@ An interactive web application to make real LLM API calls, inspect request and r
    ```
 
 2. **Configure API Key**:
-   Add your OpenAI API key to `.env`:
+   Add your OpenRouter key (or OpenAI key) to `.env`:
    ```env
-   OPENAI_API_KEY=your_openai_api_key_here
+   OPENROUTER_API_KEY=your_openrouter_api_key_here
+   # or OPENAI_API_KEY=your_openai_api_key_here
    ```
 
 3. **Start the server**:
